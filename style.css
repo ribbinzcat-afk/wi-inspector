@@ -1,0 +1,257 @@
+/* ---------- ดรอเวอร์ตั้งค่า (หน้า Extensions) ---------- */
+.wii-settings .wii-hint {
+    opacity: 0.85;
+    font-size: 0.9em;
+    margin: 4px 0 10px;
+}
+.wii-settings .wii-hint-sub {
+    opacity: 0.65;
+    font-size: 0.85em;
+    margin-top: 6px;
+}
+.wii-settings .checkbox_label {
+    margin: 4px 0;
+}
+
+/* ---------- แบดจ์ลอย ----------
+   <html> ของ ST ตั้ง transform ไว้ (แม้เป็น identity matrix — เจอจริงตอนทดสอบโหมดมือถือ) ซึ่งตามสเปก CSS
+   ทำให้มันกลายเป็น containing block ของลูกที่ position:fixed แทน viewport จริง และกล่องของมันวัดได้กว้าง/
+   สูง 0 — right/bottom/inset (ซึ่งนับระยะจากขอบขวา/ล่างของ containing block) เลยคำนวณผิดพลาดจนลอยหลุดจอไป
+   ไกล ส่วน top/left ที่ 0 ไม่พึ่งขนาดกล่องเลยจึงไม่พัง — ทางแก้: ห่อด้วย wrapper เต็มจอที่ยึด top:0;left:0
+   + กำหนดขนาดเองด้วย dvw/dvh แล้วจัดตำแหน่งลูกด้วย flex แทนการใช้ right/bottom ตรงๆ */
+.wii-badge-anchor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100dvw;
+    height: 100dvh;
+    z-index: 3000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding: calc(var(--topBarBlockSize, 40px) + 10px) 10px 0 0;
+    pointer-events: none;
+}
+.wii-badge {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background-color: var(--SmartThemeBlurTintColor);
+    border: 1px solid var(--SmartThemeBorderColor);
+    color: var(--SmartThemeBodyColor);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    opacity: 0.85;
+    font-size: 0.9em;
+    transition: opacity 0.15s ease-in-out, transform 0.1s ease-in-out;
+}
+.wii-badge:hover,
+.wii-badge:focus-visible {
+    opacity: 1;
+    transform: scale(1.04);
+}
+.wii-badge.wii-badge-empty {
+    opacity: 0.55;
+}
+.wii-badge.wii-badge-pending .wii-badge-count {
+    opacity: 0.7;
+}
+.wii-badge-count {
+    font-weight: bold;
+    min-width: 1.2em;
+    text-align: center;
+}
+
+/* ---------- แผงหลัก ---------- */
+.wii-panel {
+    /* ไม่ใช้ inset:0 — right/bottom พังด้วยบั๊กเดียวกับแบดจ์ลอย (ดูคอมเมนต์ด้านบน) ใช้ top/left + dvw/dvh แทน */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100dvw;
+    height: 100dvh;
+    z-index: 4000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+.wii-panel[hidden] {
+    display: none;
+}
+.wii-panel-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+}
+.wii-panel-sheet {
+    position: relative;
+    width: min(600px, 96vw);
+    max-height: 85dvh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--SmartThemeBlurTintColor);
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+    margin-bottom: 0;
+    overflow: hidden;
+}
+.wii-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--SmartThemeBorderColor);
+}
+.wii-panel-title {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.wii-panel-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+.wii-panel-close:hover {
+    background: var(--white20a);
+}
+.wii-panel-stats {
+    padding: 8px 12px;
+    font-size: 0.85em;
+    opacity: 0.75;
+    border-bottom: 1px solid var(--SmartThemeBorderColor);
+}
+.wii-panel-list {
+    padding: 10px 12px 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wii-hint {
+    opacity: 0.75;
+    text-align: center;
+    padding: 20px 10px;
+    line-height: 1.6;
+}
+.wii-hint-sub {
+    opacity: 0.7;
+    font-size: 0.85em;
+}
+
+/* ---------- entry card (<details>) ---------- */
+.wii-entry {
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 8px;
+    background: var(--black30a);
+    overflow: hidden;
+}
+.wii-entry-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    min-height: 32px;
+    cursor: pointer;
+    list-style: none;
+}
+.wii-entry-summary::-webkit-details-marker {
+    display: none;
+}
+.wii-entry-summary::marker {
+    content: "";
+}
+.wii-entry-summary::before {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    content: "\f105";
+    opacity: 0.6;
+    flex: 0 0 auto;
+    transition: transform 0.15s ease-in-out;
+}
+.wii-entry[open] > .wii-entry-summary::before {
+    transform: rotate(90deg);
+}
+.wii-entry-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: bold;
+}
+.wii-entry-world {
+    flex: 0 0 auto;
+    font-size: 0.8em;
+    opacity: 0.7;
+    max-width: 40%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.wii-entry-tokens {
+    flex: 0 0 auto;
+    font-size: 0.8em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--SmartThemeQuoteColor, var(--white30a));
+    color: var(--SmartThemeBlurTintColor, #fff);
+    opacity: 0.9;
+}
+.wii-entry-body {
+    padding: 0 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.wii-entry-meta {
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+.wii-entry-keys {
+    font-size: 0.85em;
+    opacity: 0.85;
+}
+.wii-entry-content {
+    margin: 0;
+    padding: 8px;
+    max-height: 30vh;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: var(--mainFontFamily);
+    font-size: 0.85em;
+    background: var(--black50a);
+    border-radius: 6px;
+}
+
+/* ---------- มือถือ ---------- */
+@media screen and (max-width: 768px) {
+    .wii-panel-sheet {
+        width: 100vw;
+        max-height: 92dvh;
+        border-radius: 14px 14px 0 0;
+    }
+    /* ย้ายแบดจ์ไปมุมล่างขวา (เหนือแถวพิมพ์ข้อความ) บนมือถือ — จัดด้วย flex ของ wrapper เอง ไม่แตะ right/bottom
+       ตรงๆ เลย (ดูคอมเมนต์ที่ .wii-badge-anchor ด้านบนว่าทำไม) */
+    .wii-badge-anchor {
+        align-items: flex-end;
+        padding: 0 8px 90px 0;
+    }
+    .wii-entry-world {
+        max-width: 30%;
+    }
+}

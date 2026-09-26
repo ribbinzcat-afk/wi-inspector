@@ -1,0 +1,10 @@
+{
+  "display_name": "WI Inspector 🔎",
+  "loading_order": 100,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "Apricity & Claude",
+  "version": "1.0.0"
+}
