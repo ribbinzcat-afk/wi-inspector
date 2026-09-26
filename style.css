@@ -89,11 +89,18 @@
     background: rgba(0, 0, 0, 0.55);
 }
 .wii-panel-sheet {
+    /* ตั้งใจใช้ CSS Grid แทน Flexbox ตรงนี้ — เคยลอง flex column + max-height + flex:1 บนลูกที่ scroll มา
+       ก่อน (ทั้ง max-height เฉยๆ และ height:min(85dvh,max-content)) แต่พังทั้งคู่: auto-height ของ flex column
+       คำนวณจาก flex-basis ของลูกเท่านั้น (header+stats แค่ ~90px, list มี flex-basis:0) ซึ่งน้อยกว่า max-height
+       เสมอ container เลย "ไม่เคยแตะเพดาน" จริง ให้ flex-grow มีที่ว่างให้ขยายเข้าไป (ยืนยันจริงจากการวัด: sheet
+       สูงแค่ ~116px ทั้งที่เนื้อหารวมสูงกว่า 3000px) — CSS Grid ไม่มีปัญหานี้: แถว auto จะกินตามเนื้อหาจริงเสมอ
+       ส่วนแถว minmax(0,1fr) กินพื้นที่ที่เหลือทั้งหมดถูกต้องตามสัดส่วน ไม่ว่า container จะ auto-size หรือชน
+       max-height ก็ตาม */
     position: relative;
     width: min(600px, 96vw);
     max-height: 85dvh;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
     background-color: var(--SmartThemeBlurTintColor);
     border: 1px solid var(--SmartThemeBorderColor);
     border-radius: 14px 14px 0 0;
@@ -133,7 +140,11 @@
     opacity: 0.75;
     border-bottom: 1px solid var(--SmartThemeBorderColor);
 }
+/* grid item (แถว minmax(0,1fr) ของ .wii-panel-sheet ด้านบน) ที่มี overflow:auto ต้อง min-height:0 เสมอ —
+   ไม่งั้น min-height เริ่มต้น (auto) จะยึดตามความสูงของเนื้อหาข้างใน ไม่ยอมหดเลย (เหมือน flex item เป๊ะ)
+   display:flex ตรงนี้คือจัดเรียง .wii-entry การ์ดข้างในเอง คนละเรื่องกับการเป็น grid item ของพ่อ */
 .wii-panel-list {
+    min-height: 0;
     padding: 10px 12px 16px;
     overflow-y: auto;
     display: flex;
@@ -157,6 +168,12 @@
    custom CSS ที่ตั้งกฎบน tag "summary"/"details" ตรงๆ (ทำ FAQ พับ/กางในธีมเอง) ซึ่งชนกับของเราจนยุบเหลือ
    เป็นเส้นบางๆ (เจอจริงบนธีมของผู้ใช้ตอนทดสอบ) ใช้คลาสของตัวเองล้วนๆ กันชนแบบนี้ได้เด็ดขาดไม่ว่าธีมจะเขียนมายังไง */
 .wii-entry {
+    /* flex item ของ .wii-panel-list — "overflow: hidden" (ไว้บังคับมุมโค้ง) ปิดการป้องกัน min-height อัตโนมัติ
+       ของ flexbox ไปด้วย (สเปกกำหนดว่า auto min-size ใช้ได้เฉพาะ overflow:visible เท่านั้น) พอเนื้อหารวมของ
+       ทุกการ์ดสูงเกินพื้นที่ที่ .wii-panel-list มี การ์ดเลยถูกบีบเล็กจนแทบมองไม่เห็น (เจอจริง: เหลือแค่ ~2px)
+       แทนที่จะให้ .wii-panel-list ซึ่งมี overflow-y:auto อยู่แล้ว เป็นฝ่าย scroll เอง — ตรึง flex-shrink:0 กัน
+       การ์ดถูกบีบต่ำกว่าความสูงจริงเด็ดขาด บังคับให้ overflow ไปตกที่ scrollbar ของ list แทนเสมอ */
+    flex-shrink: 0;
     border: 1px solid var(--SmartThemeBorderColor);
     border-radius: 8px;
     background: var(--black30a);
@@ -229,6 +246,14 @@
 .wii-entry-keys {
     font-size: 0.85em;
     opacity: 0.85;
+}
+.wii-entry-nohl {
+    font-size: 0.8em;
+    opacity: 0.8;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--black30a);
+    border: 1px dashed var(--SmartThemeBorderColor);
 }
 .wii-entry-content {
     margin: 0;

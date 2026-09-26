@@ -8,6 +8,14 @@ function entryKey(entry) {
     return `${entry.world}::${entry.uid}`;
 }
 
+/** ชุด key ของ entry ที่ "เจอ" คำแล้ววาง <mark> จริงอย่างน้อย 1 ที่ ในรอบ applyHighlights ล่าสุด — ให้ panel.js
+ * เอาไปเช็คว่า entry ไหนควรโชว์คำเตือนว่า "ไม่มีคำให้ไฮไลต์" (ดู isEntryHighlighted ท้ายไฟล์) */
+let lastHighlightedKeys = new Set();
+
+export function isEntryHighlighted(key) {
+    return lastHighlightedKeys.has(key);
+}
+
 /** ถอด <mark class="wii-hl"> ทั้งหมดกลับเป็นข้อความธรรมดา — เรียกก่อนวาดใหม่ทุกครั้งให้ idempotent */
 export function clearHighlights(root) {
     const scope = root || document.getElementById("chat") || document;
@@ -33,7 +41,12 @@ function collectTextNodes(root) {
     return nodes;
 }
 
-/** หาทุกช่วงที่แมตช์ในข้อความ node เดียว จากตัวจับคู่ของหลาย entry รวมกัน แล้วห่อด้วย <mark> (ช่วงที่ทับกันตัวแรกชนะ) */
+/**
+ * หาทุกช่วงที่แมตช์ในข้อความ node เดียว จากตัวจับคู่ของหลาย entry รวมกัน แล้วห่อด้วย <mark>
+ * ช่วงที่ทับกัน (เช่น 2 entry มีคีย์ที่เป็น substring ของกันเอง — "เมือง" กับ "เมืองหลวง") ตัวแรกที่เจอชนะ
+ * ตัวที่ทับซ้ำจะไม่ถูกวาด แม้ entry นั้นจะถูกแอคทิเวตจริงก็ตาม (ข้อจำกัดที่ทราบอยู่แล้ว — ดู isEntryHighlighted)
+ * @returns {string[]} key ของ entry ที่วางไฮไลต์ลงไปจริงใน node นี้
+ */
 function wrapMatchesInTextNode(node, matchersWithMeta) {
     const text = node.data;
     const ranges = [];
@@ -48,7 +61,7 @@ function wrapMatchesInTextNode(node, matchersWithMeta) {
             if (regex.lastIndex <= m.index) regex.lastIndex = m.index + 1;
         }
     }
-    if (!ranges.length) return;
+    if (!ranges.length) return [];
 
     ranges.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
     const kept = [];
@@ -72,6 +85,7 @@ function wrapMatchesInTextNode(node, matchersWithMeta) {
     if (cursor < text.length) frag.appendChild(document.createTextNode(text.slice(cursor)));
 
     node.parentNode.replaceChild(frag, node);
+    return kept.map((r) => r.meta.key);
 }
 
 /**
@@ -82,6 +96,7 @@ function wrapMatchesInTextNode(node, matchersWithMeta) {
  */
 export function applyHighlights(report) {
     clearHighlights();
+    lastHighlightedKeys = new Set();
 
     if (!getSetting("enabled") || !getSetting("highlightMessages")) return;
     if (!report || report.pending || !report.entries.length) return;
@@ -114,7 +129,7 @@ export function applyHighlights(report) {
         const mesText = document.querySelector(`#chat .mes[mesid="${mesId}"] .mes_text`);
         if (!mesText) continue;
         for (const node of collectTextNodes(mesText)) {
-            wrapMatchesInTextNode(node, matchersWithMeta);
+            for (const k of wrapMatchesInTextNode(node, matchersWithMeta)) lastHighlightedKeys.add(k);
         }
     }
 }

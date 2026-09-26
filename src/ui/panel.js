@@ -1,5 +1,6 @@
 import { escapeHtml } from "../util.js";
 import { getReport } from "../report.js";
+import { isEntryHighlighted } from "../highlight.js";
 
 const PANEL_ID = "wii-panel";
 let mounted = false;
@@ -36,6 +37,18 @@ function entryMetaLine(entry) {
 // ใช้ div+JS toggle แทน <details>/<summary> โดยตั้งใจ — ธีมของผู้ใช้ ST มักมี custom CSS ที่ตั้งกฎ
 // ให้ tag "summary"/"details" ตรงๆ (ทำ FAQ พับ/กางในธีม) ซึ่งชนกับของเราแล้วบีบให้ยุบเหลือเส้นบางๆ
 // (เจอจริงตอนทดสอบบนธีมของผู้ใช้ — ดู panel state) การใช้ div ธรรมดา + คลาสของตัวเองเท่านั้นกันชนแบบนี้ได้เด็ดขาด
+// เตือนในการ์ดเมื่อ entry นี้ไม่มีคำไหนถูกวางไฮไลต์ในแชทเลย ทั้งที่ ST รายงานว่าแอคทิเวตจริง — สาเหตุที่เป็นไปได้:
+// แมตช์จากคำอธิบายตัวละคร/persona/scenario/creator's note (ไม่ใช่ข้อความแชท), แอคทิเวตต่อเนื่องจาก sticky
+// (ไม่มีคำใหม่ในรอบนี้), คีย์ถูก entry อื่นที่คีย์ทับซ้อนกันแย่งไฮไลต์ไปก่อน, หรือคำถูกตัดคนละ element ตอนเรนเดอร์
+// (เช่น **ตัวหนา** คร่อมคำ) — ไม่ใช่บั๊กเดียวเสมอไป จึงบอกเป็นรายการความเป็นไปได้แทนฟันธง
+function noHighlightHint(entry) {
+    if (entry.constant) return "";
+    const keys = [...entry.key, ...entry.keysecondary];
+    if (!keys.length) return "";
+    if (isEntryHighlighted(entryKey(entry))) return "";
+    return `<div class="wii-entry-nohl">⚠ ไม่พบคำนี้ในข้อความแชทที่สแกน — อาจแมตช์จากคำอธิบายตัวละคร/persona/scenario, ต่อเนื่องจาก sticky, ถูกคีย์อื่นที่ทับซ้อนแย่งไป, หรือคำถูกตัดคนละส่วนตอนเรนเดอร์ (เช่น ตัวหนา/ตัวเอียงคร่อมคำ)</div>`;
+}
+
 function entryHtml(entry) {
     const keys = entry.key.concat(entry.keysecondary.map((k) => `+${k}`));
     const keysHtml = keys.length ? `<div class="wii-entry-keys">คีย์: ${escapeHtml(keys.join(", "))}</div>` : "";
@@ -50,6 +63,7 @@ function entryHtml(entry) {
         <div class="wii-entry-body">
             <div class="wii-entry-meta">${escapeHtml(entryMetaLine(entry))}</div>
             ${keysHtml}
+            ${noHighlightHint(entry)}
             <pre class="wii-entry-content">${escapeHtml(entry.content) || "(เนื้อหาว่าง)"}</pre>
         </div>
     </div>`;

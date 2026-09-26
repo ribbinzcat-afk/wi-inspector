@@ -41,8 +41,8 @@ jQuery(async () => {
 
         function onReportUpdate(report) {
             updateBadge(report);
+            applyHighlights(report); // ก่อน refreshPanelIfOpen() เสมอ — แผงต้องรู้ว่า entry ไหนไฮไลต์ไม่เจอบ้าง
             refreshPanelIfOpen();
-            applyHighlights(report);
         }
 
         onReportChange(onReportUpdate);
@@ -50,7 +50,10 @@ jQuery(async () => {
 
         // ST เรนเดอร์ .mes_text ใหม่ทั้งก้อนตอนเหตุการณ์พวกนี้ (ทับ <mark> ของเราทิ้ง) — ต้องวาดไฮไลต์ซ้ำทุกครั้ง
         // (ใช้ entry.mesIds ที่แช่แข็งไว้แล้วเสมอ ไม่คำนวณ mesIds ใหม่จาก ctx.chat ที่อาจยาวขึ้นแล้ว)
-        const reapplyHighlights = () => applyHighlights(getReport());
+        const reapplyHighlights = () => {
+            applyHighlights(getReport());
+            refreshPanelIfOpen(); // เผื่อ "entry ไหนไฮไลต์ไม่เจอ" เปลี่ยนไปหลังข้อความถูกเรนเดอร์ใหม่
+        };
         eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, reapplyHighlights);
         eventSource.on(event_types.USER_MESSAGE_RENDERED, reapplyHighlights);
         eventSource.on(event_types.MESSAGE_SWIPED, reapplyHighlights);
