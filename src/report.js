@@ -1,5 +1,6 @@
 import { extensionName } from "./store.js";
 import { countTokens } from "./tokens.js";
+import { scannableMesIds } from "./wiMatch.js";
 
 /**
  * รายงานของ "เจนล่าสุด" — เก็บแค่ในหน่วยความจำ ไม่ persist ลง settings เพราะคำว่า "ล่าสุด" ควร
@@ -18,6 +19,9 @@ import { countTokens } from "./tokens.js";
  * @property {number} role
  * @property {boolean} constant
  * @property {number} tokens
+ * @property {number[]} mesIds ชุดข้อความที่ถูกสแกนจริง ณ ตอนแอคทิเวต (เก็บแช่แข็งไว้ตอนนั้นเลย — ไม่คำนวณใหม่
+ *   ตอนไฮไลต์ เพราะถ้าคำนวณใหม่จาก ctx.chat ตอนที่ข้อความบอทถูกเพิ่มเข้ามาแล้ว หน้าต่างที่ "ล่าสุด N ข้อความ"
+ *   จะเลื่อนไปรวมข้อความบอทที่เพิ่งตอบด้วย ทั้งที่ตอนสแกนจริง (ก่อนบอทตอบ) ไม่เคยเห็นข้อความนั้นเลย
  */
 
 function emptyReport() {
@@ -76,6 +80,8 @@ export async function recordActivation(ctx, rawEntries) {
             role: raw?.role,
             constant: Boolean(raw?.constant),
             tokens,
+            // ต้องคำนวณ ณ ตอนนี้เท่านั้น (ctx.chat ตอนนี้ = มีข้อความผู้ใช้ล่าสุดแล้ว แต่ยังไม่มีคำตอบบอท)
+            mesIds: scannableMesIds(ctx, raw),
         });
     }
     entries.sort((a, b) => a.world.localeCompare(b.world) || (a.order ?? 0) - (b.order ?? 0));

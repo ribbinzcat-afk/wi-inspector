@@ -1,5 +1,5 @@
 import { getSetting } from "./store.js";
-import { entryMatchers, scannableMesIds } from "./wiMatch.js";
+import { entryMatchers } from "./wiMatch.js";
 
 const HL_CLASS = "wii-hl";
 const PALETTE_SIZE = 6;
@@ -74,8 +74,13 @@ function wrapMatchesInTextNode(node, matchersWithMeta) {
     node.parentNode.replaceChild(frag, node);
 }
 
-/** วาดไฮไลต์ใหม่ทั้งหมดตามรายงานปัจจุบัน — เรียกได้ซ้ำๆ อย่างปลอดภัย (เคลียร์ของเก่าก่อนเสมอ) */
-export function applyHighlights(ctx, report) {
+/**
+ * วาดไฮไลต์ใหม่ทั้งหมดตามรายงานปัจจุบัน — เรียกได้ซ้ำๆ อย่างปลอดภัย (เคลียร์ของเก่าก่อนเสมอ)
+ * ใช้ entry.mesIds ที่แช่แข็งไว้ตอนแอคทิเวตจริง (ดูคอมเมนต์ที่ report.js) ห้ามคำนวณ mesIds ใหม่จาก ctx.chat
+ * ตรงนี้เด็ดขาด — ไม่งั้นพอบอทตอบกลับมาแล้ว (ctx.chat ยาวขึ้นอีก 1) หน้าต่าง "ล่าสุด N ข้อความ" จะเลื่อนไป
+ * ทับข้อความที่บอทเพิ่งตอบแทน ทั้งที่ตอนสแกนจริงไม่เคยเห็นข้อความนั้นเลย (อาการที่ผู้ใช้เจอจริง)
+ */
+export function applyHighlights(report) {
     clearHighlights();
 
     if (!getSetting("enabled") || !getSetting("highlightMessages")) return;
@@ -89,7 +94,7 @@ export function applyHighlights(ctx, report) {
         if (entry.constant) continue; // แทรกเสมออยู่แล้ว ไม่มี "ข้อความที่ trigger" จริงให้ชี้
         const matchers = entryMatchers(entry);
         if (!matchers.length) continue;
-        const mesIds = scannableMesIds(ctx, entry);
+        const mesIds = entry.mesIds || [];
         if (!mesIds.length) continue;
 
         const key = entryKey(entry);
