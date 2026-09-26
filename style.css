@@ -152,7 +152,10 @@
     font-size: 0.85em;
 }
 
-/* ---------- entry card (<details>) ---------- */
+/* ---------- entry card ----------
+   ตั้งใจใช้ div ธรรมดา + JS toggle (ไม่ใช้ <details>/<summary> ของ browser) — ธีมของผู้ใช้ ST หลายธีมมี
+   custom CSS ที่ตั้งกฎบน tag "summary"/"details" ตรงๆ (ทำ FAQ พับ/กางในธีมเอง) ซึ่งชนกับของเราจนยุบเหลือ
+   เป็นเส้นบางๆ (เจอจริงบนธีมของผู้ใช้ตอนทดสอบ) ใช้คลาสของตัวเองล้วนๆ กันชนแบบนี้ได้เด็ดขาดไม่ว่าธีมจะเขียนมายังไง */
 .wii-entry {
     border: 1px solid var(--SmartThemeBorderColor);
     border-radius: 8px;
@@ -166,23 +169,14 @@
     padding: 8px 10px;
     min-height: 32px;
     cursor: pointer;
-    list-style: none;
 }
-.wii-entry-summary::-webkit-details-marker {
-    display: none;
-}
-.wii-entry-summary::marker {
-    content: "";
-}
-.wii-entry-summary::before {
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    content: "\f105";
-    opacity: 0.6;
+.wii-entry-caret {
     flex: 0 0 auto;
+    opacity: 0.6;
+    font-size: 0.8em;
     transition: transform 0.15s ease-in-out;
 }
-.wii-entry[open] > .wii-entry-summary::before {
+.wii-entry[data-expanded="true"] > .wii-entry-summary .wii-entry-caret {
     transform: rotate(90deg);
 }
 .wii-entry-title {
@@ -212,10 +206,13 @@
     opacity: 0.9;
 }
 .wii-entry-body {
+    display: none;
     padding: 0 10px 10px;
-    display: flex;
     flex-direction: column;
     gap: 6px;
+}
+.wii-entry[data-expanded="true"] > .wii-entry-body {
+    display: flex;
 }
 .wii-entry-meta {
     font-size: 0.8em;

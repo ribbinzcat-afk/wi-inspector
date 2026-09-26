@@ -28,22 +28,32 @@ function entryMetaLine(entry) {
     return parts.join(" · ");
 }
 
+// ใช้ div+JS toggle แทน <details>/<summary> โดยตั้งใจ — ธีมของผู้ใช้ ST มักมี custom CSS ที่ตั้งกฎ
+// ให้ tag "summary"/"details" ตรงๆ (ทำ FAQ พับ/กางในธีม) ซึ่งชนกับของเราแล้วบีบให้ยุบเหลือเส้นบางๆ
+// (เจอจริงตอนทดสอบบนธีมของผู้ใช้ — ดู panel state) การใช้ div ธรรมดา + คลาสของตัวเองเท่านั้นกันชนแบบนี้ได้เด็ดขาด
 function entryHtml(entry) {
     const keys = entry.key.concat(entry.keysecondary.map((k) => `+${k}`));
     const keysHtml = keys.length ? `<div class="wii-entry-keys">คีย์: ${escapeHtml(keys.join(", "))}</div>` : "";
     return `
-    <details class="wii-entry">
-        <summary class="wii-entry-summary">
+    <div class="wii-entry" data-expanded="false">
+        <div class="wii-entry-summary interactable" tabindex="0" role="button" aria-expanded="false">
+            <span class="wii-entry-caret fa-solid fa-chevron-right"></span>
             <span class="wii-entry-title">${escapeHtml(entryTitle(entry))}</span>
             <span class="wii-entry-world">${escapeHtml(entry.world || "(ไม่ทราบ world)")}</span>
             <span class="wii-entry-tokens">${entry.tokens} tok</span>
-        </summary>
+        </div>
         <div class="wii-entry-body">
             <div class="wii-entry-meta">${escapeHtml(entryMetaLine(entry))}</div>
             ${keysHtml}
             <pre class="wii-entry-content">${escapeHtml(entry.content) || "(เนื้อหาว่าง)"}</pre>
         </div>
-    </details>`;
+    </div>`;
+}
+
+function toggleEntry($entry) {
+    const expanded = $entry.attr("data-expanded") === "true";
+    $entry.attr("data-expanded", String(!expanded));
+    $entry.find("> .wii-entry-summary").attr("aria-expanded", String(!expanded));
 }
 
 function renderBody() {
@@ -92,6 +102,15 @@ function bindEvents() {
     const $panel = $(`#${PANEL_ID}`);
     $panel.find(".wii-panel-close").on("click", closePanel);
     $panel.find(".wii-panel-backdrop").on("click", closePanel);
+    $panel.on("click", ".wii-entry-summary", function () {
+        toggleEntry($(this).closest(".wii-entry"));
+    });
+    $panel.on("keydown", ".wii-entry-summary", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleEntry($(this).closest(".wii-entry"));
+        }
+    });
     $(document).on("keydown.wii-panel", (e) => {
         if (e.key === "Escape" && isPanelOpen()) closePanel();
     });
