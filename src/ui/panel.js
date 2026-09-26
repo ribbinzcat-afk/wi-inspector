@@ -20,6 +20,11 @@ function entryTitle(entry) {
     return entry.comment || entry.key.join(", ") || `#${entry.uid ?? "?"}`;
 }
 
+// world+uid ผูกกับ data-wii-key เดียวกับที่ mark ไฮไลต์ในแชทใช้ (src/highlight.js) — กดไฮไลต์แล้วเด้งมาเปิดการ์ดนี้ได้
+function entryKey(entry) {
+    return `${entry.world}::${entry.uid}`;
+}
+
 function entryMetaLine(entry) {
     const parts = [POSITION_LABELS[entry.position] ?? `position ${entry.position}`];
     if (entry.position === 4) parts.push(`ลึก ${entry.depth}`);
@@ -35,7 +40,7 @@ function entryHtml(entry) {
     const keys = entry.key.concat(entry.keysecondary.map((k) => `+${k}`));
     const keysHtml = keys.length ? `<div class="wii-entry-keys">คีย์: ${escapeHtml(keys.join(", "))}</div>` : "";
     return `
-    <div class="wii-entry" data-expanded="false">
+    <div class="wii-entry" data-expanded="false" data-wii-key="${escapeHtml(entryKey(entry))}">
         <div class="wii-entry-summary interactable" tabindex="0" role="button" aria-expanded="false">
             <span class="wii-entry-caret fa-solid fa-chevron-right"></span>
             <span class="wii-entry-title">${escapeHtml(entryTitle(entry))}</span>
@@ -144,6 +149,21 @@ export function togglePanel() {
 
 export function refreshPanelIfOpen() {
     if (isPanelOpen()) renderBody();
+}
+
+/** เปิดแผง + ขยายการ์ด entry ที่ตรงกับ key (world::uid) + เลื่อนจอไปหา — เรียกจากการกดไฮไลต์ในแชท (src/highlight.js) */
+export function revealEntry(key) {
+    openPanel();
+    // ใช้ .filter() เทียบค่าตรงๆ แทนฝัง key ลงใน selector string กัน CSS-selector injection จากอักขระพิเศษใน world/uid
+    const $entry = $(`#${PANEL_ID} .wii-entry`).filter(function () {
+        return $(this).attr("data-wii-key") === key;
+    });
+    if (!$entry.length) return;
+    $entry.attr("data-expanded", "true");
+    $entry.find("> .wii-entry-summary").attr("aria-expanded", "true");
+    $entry[0].scrollIntoView({ behavior: "smooth", block: "center" });
+    $entry.addClass("wii-entry-flash");
+    setTimeout(() => $entry.removeClass("wii-entry-flash"), 1200);
 }
 
 export function teardownPanel() {

@@ -7,6 +7,7 @@ export const WAND_BUTTON_ID = "wii-menu-button";
 export function loadSettingsUi() {
     $("#wii-enabled").prop("checked", getSetting("enabled"));
     $("#wii-show-badge").prop("checked", getSetting("showBadge"));
+    $("#wii-highlight-messages").prop("checked", getSetting("highlightMessages"));
 }
 
 export function syncWandButtonVisibility() {
@@ -20,9 +21,14 @@ export function bindSettingsHandlers() {
         setSetting("enabled", enabled);
         if (!enabled) closePanel();
         syncWandButtonVisibility();
+        $(document).trigger("wii:settings-changed");
     });
     $(document).on("input", "#wii-show-badge", function () {
         setSetting("showBadge", Boolean($(this).prop("checked")));
         applyBadgeVisibility();
+    });
+    $(document).on("input", "#wii-highlight-messages", function () {
+        setSetting("highlightMessages", Boolean($(this).prop("checked")));
+        $(document).trigger("wii:settings-changed");
     });
 }

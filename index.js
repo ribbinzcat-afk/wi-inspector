@@ -3,8 +3,9 @@ import { getContext } from "../../../extensions.js";
 import { extensionName, extensionFolderPath, getSettings, getSetting } from "./src/store.js";
 import { beginGeneration, recordActivation, finalizeIfPending, resetReport, onReportChange, getReport } from "./src/report.js";
 import { mountBadge, updateBadge, applyBadgeVisibility } from "./src/ui/badge.js";
-import { openPanel, togglePanel, refreshPanelIfOpen } from "./src/ui/panel.js";
+import { openPanel, togglePanel, refreshPanelIfOpen, revealEntry } from "./src/ui/panel.js";
 import { loadSettingsUi, bindSettingsHandlers, syncWandButtonVisibility, WAND_BUTTON_ID } from "./src/ui/settings.js";
+import { applyHighlights, bindHighlightClicks } from "./src/highlight.js";
 
 /** เพิ่มปุ่มลัดในเมนูไม้กายสิทธิ์ (#extensionsMenu) — extension third-party ไม่มี container จองไว้ให้ */
 function mountWandButton() {
@@ -17,11 +18,6 @@ function mountWandButton() {
     btn.on("click", () => togglePanel());
     $("#extensionsMenu").append(btn);
     syncWandButtonVisibility();
-}
-
-function onReportUpdate(report) {
-    updateBadge(report);
-    refreshPanelIfOpen();
 }
 
 jQuery(async () => {
@@ -37,13 +33,29 @@ jQuery(async () => {
         mountWandButton();
         mountBadge(() => openPanel());
         applyBadgeVisibility();
-
-        onReportChange(onReportUpdate);
-        onReportUpdate(getReport());
+        bindHighlightClicks((key) => revealEntry(key));
 
         // world-info.js: getWorldInfoPrompt() ยิง event นี้เฉพาะตอนไม่ dry-run และมีอย่างน้อย 1 entry
         // ที่ผ่าน budget/probability/recursion แล้วจริง — คือชุดที่ถูก "ส่งเข้าไปหาโมเดล" จริงในเจนนั้น
         const ctx = getContext();
+
+        function onReportUpdate(report) {
+            updateBadge(report);
+            refreshPanelIfOpen();
+            applyHighlights(ctx, report);
+        }
+
+        onReportChange(onReportUpdate);
+        onReportUpdate(getReport());
+
+        // ST เรนเดอร์ .mes_text ใหม่ทั้งก้อนตอนเหตุการณ์พวกนี้ (ทับ <mark> ของเราทิ้ง) — ต้องวาดไฮไลต์ซ้ำทุกครั้ง
+        const reapplyHighlights = () => applyHighlights(ctx, getReport());
+        eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, reapplyHighlights);
+        eventSource.on(event_types.USER_MESSAGE_RENDERED, reapplyHighlights);
+        eventSource.on(event_types.MESSAGE_SWIPED, reapplyHighlights);
+        eventSource.on(event_types.MESSAGE_UPDATED, reapplyHighlights);
+        eventSource.on(event_types.MORE_MESSAGES_LOADED, reapplyHighlights);
+        $(document).on("wii:settings-changed", reapplyHighlights);
 
         eventSource.on(event_types.GENERATION_STARTED, (_type, _options, dryRun) => {
             if (!getSetting("enabled")) return;

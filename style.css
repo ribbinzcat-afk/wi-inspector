@@ -162,6 +162,14 @@
     background: var(--black30a);
     overflow: hidden;
 }
+/* กดไฮไลต์ในแชท (.wii-hl) แล้วเด้งมาเปิดการ์ดนี้ — กระพริบสั้นๆ ให้เห็นว่าเลื่อนมาถูกใบ */
+.wii-entry-flash {
+    animation: wii-entry-flash-anim 1.2s ease-out;
+}
+@keyframes wii-entry-flash-anim {
+    0%, 100% { box-shadow: none; }
+    25% { box-shadow: 0 0 0 2px var(--SmartThemeQuoteColor, #8ab4f8); }
+}
 .wii-entry-summary {
     display: flex;
     align-items: center;
@@ -252,3 +260,22 @@
         max-width: 30%;
     }
 }
+
+/* ---------- ไฮไลต์คำที่ trigger world info ตรงในบับเบิลข้อความ ----------
+   สีพื้นหลังคงที่ (ไม่อิงตัวแปรธีม) + บังคับสีตัวอักษรเข้มเสมอ เพราะพื้นสีของเราต้องอ่านออกได้ไม่ว่าธีมของ
+   ผู้ใช้จะเป็นสว่างหรือมืด — เหมือนป้ายสติ๊กเกอร์แปะทับ ไม่ใช่สีที่ต้องเดินตามธีม */
+.wii-hl {
+    border-radius: 3px;
+    padding: 0 2px;
+    margin: 0 -1px;
+    cursor: pointer;
+    color: #1a1a1a;
+    text-decoration: underline dotted rgba(0, 0, 0, 0.35);
+    text-underline-offset: 2px;
+}
+.wii-hl-0 { background: hsla(0, 85%, 75%, 0.75); }
+.wii-hl-1 { background: hsla(45, 90%, 70%, 0.75); }
+.wii-hl-2 { background: hsla(140, 60%, 70%, 0.75); }
+.wii-hl-3 { background: hsla(195, 80%, 72%, 0.75); }
+.wii-hl-4 { background: hsla(265, 65%, 78%, 0.75); }
+.wii-hl-5 { background: hsla(320, 70%, 78%, 0.75); }
